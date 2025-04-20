@@ -3,7 +3,7 @@ services:
     name: isbn-book-lookup
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn book_catalog_app:flask_app
+    startCommand: gunicorn book_catalog_app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0

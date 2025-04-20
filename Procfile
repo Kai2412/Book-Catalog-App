@@ -1,1 +1,1 @@
-web: gunicorn book_catalog_app:flask_app
+web: gunicorn book_catalog_app:app
