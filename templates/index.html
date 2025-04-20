@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Amanda's Library">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>Amanda's Library - Book Importer</title>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-book-open logo-icon"></i>
+                    <h1>Amanda's Library</h1>
+                </div>
+                <a href="https://www.notion.so/" class="notion-link" target="_blank">
+                    <i class="fas fa-arrow-right"></i> Back to Notion
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="intro">
+            <h2>Add Books to Your Collection</h2>
+            <p>Search for your favorite books by title, author, or ISBN. You can also scan barcodes from physical books to add them directly to your Notion library.</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="search">
+                <i class="fas fa-search"></i> Search Books
+            </div>
+            <div class="tab" data-tab="scan">
+                <i class="fas fa-camera"></i> Scan Barcode
+            </div>
+            <div class="tab" data-tab="manual">
+                <i class="fas fa-keyboard"></i> Manual Entry
+            </div>
+        </div>
+        
+        <!-- Search Tab -->
+        <div class="tab-content active" id="search-tab">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search by title, author, or ISBN...">
+                    <button id="search-button" class="search-button">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div class="search-options">
+                    <label class="search-option">
+                        <input type="radio" name="search-type" value="general" checked>
+                        <span>General Search</span>
+                    </label>
+                    <label class="search-option">
+                        <input type="radio" name="search-type" value="exact_isbn">
+                        <span>Exact ISBN Match</span>
+                    </label>
+                </div>
+            </div>
+            <div id="search-status" class="status"></div>
+            <div id="search-results" class="search-results"></div>
+        </div>
+        
+        <!-- Scan Tab -->
+        <div class="tab-content" id="scan-tab">
+            <div class="scanner-container">
+                <div id="scanner-container">
+                    <video id="video"></video>
+                    <div id="scanner-overlay">
+                        <div id="scanner-guide"></div>
+                    </div>
+                </div>
+                <select id="camera-select" class="camera-select" style="display:none"></select>
+                <div id="result">Ready to scan a book barcode</div>
+                <button id="start-button" class="control-button">
+                    <i class="fas fa-camera"></i> Start Scanner
+                </button>
+            </div>
+            <div id="scan-status" class="status"></div>
+        </div>
+        
+        <!-- Manual Entry Tab -->
+        <div class="tab-content" id="manual-tab">
+            <div class="manual-entry-heading">
+                <h3>Add Book Manually</h3>
+                <p>Enter book details for books that aren't in online databases</p>
+            </div>
+            <div class="manual-entry-container">
+                <form id="manual-entry-form" class="manual-entry-form">
+                    <div class="form-group">
+                        <label for="title">Title <span class="required">*</span></label>
+                        <input type="text" id="title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="authors">Author(s) <span class="required">*</span></label>
+                        <input type="text" id="authors" name="authors" placeholder="Separate multiple authors with commas" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="isbn">ISBN</label>
+                        <input type="text" id="isbn" name="isbn" placeholder="10 or 13 digit ISBN (optional)">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="publishedDate">Publication Year</label>
+                            <input type="number" id="publishedDate" name="publishedDate" min="1000" max="2099">
+                        </div>
+                        <div class="form-group half">
+                            <label for="pageCount">Pages</label>
+                            <input type="number" id="pageCount" name="pageCount" min="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="publisher">Publisher</label>
+                        <input type="text" id="publisher" name="publisher">
+                    </div>
+                    <div class="form-group">
+                        <label for="categories">Categories/Genres</label>
+                        <input type="text" id="categories" name="categories" placeholder="Separate with commas (e.g., Fiction, Fantasy)">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="manual-submit-button">
+                            <i class="fas fa-plus"></i> Add to Library
+                        </button>
+                    </div>
+                </form>
+                <div id="manual-status" class="status"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PWA Install Prompt -->
+    <div class="pwa-install" id="pwa-prompt">
+        <button class="pwa-close" id="pwa-close"><i class="fas fa-times"></i></button>
+        <h3 class="pwa-title">Add to Home Screen</h3>
+        <p class="pwa-desc">Install this app on your device for quick access anytime, even offline!</p>
+        <div class="pwa-buttons">
+            <button class="pwa-install-btn" id="pwa-install">Install</button>
+            <button class="pwa-later-btn" id="pwa-later">Maybe Later</button>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-heart" style="color: var(--accent-color);"></i>
+                    <span>Made with Love</span>
+                </div>
+                <p class="footer-tagline">A special gift for Amanda's reading journey</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://unpkg.com/@zxing/library@0.18.3/umd/index.min.js"></script>
+    <script>
+    // Tab Functionality
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}-tab`) {
+                        content.classList.add('active');
+                    }
+                });
+                // Stop scanner if switching away from scan tab
+                if (tabId !== 'scan' && codeReader && codeReaderActive) {
+                    stopScanner();
+                }
+            });
+        });
+        document.getElementById('search-button').addEventListener('click', searchBooks);
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchBooks();
+        });
+        document.getElementById('start-button').addEventListener('click', toggleScanner);
+        document.getElementById('manual-entry-form').addEventListener('submit', handleManualSubmit);
+
+        // PWA prompt logic...
+        const pwaPrompt = document.getElementById('pwa-prompt');
+        const pwaClose = document.getElementById('pwa-close');
+        const pwaInstall = document.getElementById('pwa-install');
+        const pwaLater = document.getElementById('pwa-later');
+        setTimeout(() => {
+            if (window.innerWidth < 768 && !localStorage.getItem('pwa-dismissed')) {
+                pwaPrompt.style.display = 'block';
+            }
+        }, 5000);
+        pwaClose.addEventListener('click', () => {
+            pwaPrompt.style.display = 'none';
+            localStorage.setItem('pwa-dismissed', 'true');
+        });
+        pwaLater.addEventListener('click', () => {
+            pwaPrompt.style.display = 'none';
+        });
+        pwaInstall.addEventListener('click', () => {
+            pwaPrompt.style.display = 'none';
+            localStorage.setItem('pwa-dismissed', 'true');
+            alert('To install: In Safari, tap the Share button and select "Add to Home Screen"');
+        });
+    });
+
+    // Book Search Functionality
+    async function searchBooks() {
+        const query = document.getElementById('search-input').value.trim();
+        const searchType = document.querySelector('input[name="search-type"]:checked').value;
+        const resultsContainer = document.getElementById('search-results');
+        if (!query) {
+            showStatus('Please enter a search term', 'error', 'search-status');
+            return;
+        }
+        showStatus('Searching for books...', 'loading', 'search-status');
+        resultsContainer.innerHTML = '';
+        try {
+            const response = await fetch('/search_books', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query, search_type: searchType })
+            });
+            const data = await response.json();
+            if (data.success && data.results.length > 0) {
+                showStatus('', '', 'search-status');
+                data.results.forEach(book => {
+                    const bookCard = document.createElement('div');
+                    bookCard.className = 'book-card';
+                    if (book.exactMatch) bookCard.classList.add('exact-match');
+                    const authors = Array.isArray(book.authors) ? book.authors.join(', ') : book.authors;
+                    const publishedYear = book.publishedDate ? book.publishedDate.substring(0, 4) : '';
+                    bookCard.innerHTML = `
+                        <div class="book-thumbnail">
+                            <img src="${book.thumbnail}" alt="${book.title}" loading="lazy">
+                        </div>
+                        <div class="book-info">
+                            <h3 class="book-title">${book.title}</h3>
+                            <p class="book-author">${authors}</p>
+                            <div class="book-details">
+                                ${publishedYear ? `<div class="book-detail"><i class="fas fa-calendar-alt"></i><span>${publishedYear}</span></div>` : ''}
+                                ${book.pageCount ? `<div class="book-detail"><i class="fas fa-file-alt"></i><span>${book.pageCount} pages</span></div>` : ''}
+                                ${book.isbn ? `<div class="book-detail"><i class="fas fa-barcode"></i><span>ISBN: ${book.isbn}</span></div>` : ''}
+                            </div>
+                        </div>
+                        <div class="book-actions">
+                            <button class="add-button" data-isbn="${book.isbn}" ${!book.isbn ? 'disabled' : ''}>
+                                <i class="fas fa-plus"></i> Add to Library
+                            </button>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(bookCard);
+                    if (book.isbn) {
+                        const addButton = bookCard.querySelector('.add-button');
+                        addButton.addEventListener('click', () => {
+                            addBookToNotion(book, addButton);
+                        });
+                    }
+                });
+            } else {
+                showStatus(data.message || 'No books found. Try a different search term.', 'error', 'search-status');
+            }
+        } catch (error) {
+            showStatus(`Error searching books: ${error.message}`, 'error', 'search-status');
+        }
+    }
+
+    // Scanner Functionality
+    let codeReader;
+    let codeReaderActive = false;
+    let lastDetectedCode = '';
+    let processingBook = false;
+    let availableCameras = [];
+
+    async function populateCameraOptions() {
+        try {
+            const videoDevices = await navigator.mediaDevices.enumerateDevices()
+                .then(devices => devices.filter(device => device.kind === 'videoinput'));
+            availableCameras = videoDevices;
+            const select = document.getElementById('camera-select');
+            select.innerHTML = '';
+            if (videoDevices.length > 1) {
+                select.style.display = '';
+                videoDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    // Try to label front/back if possible
+                    if (device.label.toLowerCase().includes('back')) {
+                        option.text = device.label;
+                    } else if (device.label.toLowerCase().includes('front')) {
+                        option.text = device.label;
+                    } else {
+                        option.text = `Camera ${index + 1}`;
+                    }
+                    select.appendChild(option);
+                });
+                // Try to select a back camera by default
+                let backIdx = videoDevices.findIndex(d => d.label.toLowerCase().includes('back'));
+                select.selectedIndex = backIdx !== -1 ? backIdx : 0;
+            } else if (videoDevices.length === 1) {
+                select.style.display = 'none';
+            }
+        } catch (error) {
+            console.error("Error listing cameras:", error);
+        }
+    }
+
+    function toggleScanner() {
+        if (codeReaderActive) {
+            stopScanner();
+        } else {
+            startScanner();
+        }
+    }
+
+    async function startScanner() {
+        await populateCameraOptions();
+        if (!codeReader) {
+            codeReader = new ZXing.BrowserMultiFormatReader();
+        }
+        const videoElement = document.getElementById('video');
+        const startButton = document.getElementById('start-button');
+        const cameraSelect = document.getElementById('camera-select');
+        startButton.innerHTML = '<i class="fas fa-stop"></i> Stop Scanner';
+        document.getElementById('result').textContent = 'Scanning for book barcode...';
+        let constraints;
+        if (cameraSelect && cameraSelect.value) {
+            constraints = {
+                video: {
+                    deviceId: { exact: cameraSelect.value },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+        } else {
+            constraints = {
+                video: {
+                    facingMode: { exact: 'environment' },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+        }
+        await codeReader.decodeFromConstraints(
+            { video: constraints },
+            videoElement,
+            (result, error) => {
+                if (result && result.text !== lastDetectedCode) {
+                    lastDetectedCode = result.text;
+                    const isbn = result.text.replace(/[^0-9]/g, '');
+                    if ((isbn.length === 10 || isbn.length === 13) && !isNaN(isbn)) {
+                        document.getElementById('result').textContent = `Found ISBN: ${isbn}`;
+                        if (!processingBook) {
+                            addBookToNotion(isbn);
+                        }
+                    } else {
+                        document.getElementById('result').textContent = `Detected code is not a valid ISBN. Keep scanning...`;
+                    }
+                }
+                if (error && !(error instanceof ZXing.NotFoundException)) {
+                    console.error(error);
+                    document.getElementById('result').textContent = 'Error scanning. Try again.';
+                }
+            }
+        );
+        codeReaderActive = true;
+    }
+
+    function stopScanner() {
+        if (codeReader) {
+            codeReader.reset();
+            const startButton = document.getElementById('start-button');
+            startButton.innerHTML = '<i class="fas fa-camera"></i> Start Scanner';
+            document.getElementById('result').textContent = 'Scanner stopped';
+            codeReaderActive = false;
+        }
+    }
+
+    document.getElementById('camera-select').addEventListener('change', () => {
+        if (codeReaderActive) {
+            stopScanner();
+            setTimeout(() => startScanner(), 200);
+        }
+    });
+
+    document.querySelector('.tab[data-tab="scan"]').addEventListener('click', () => {
+        populateCameraOptions();
+    });
+
+    // Manual Entry Form Submission
+    async function handleManualSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.innerHTML = '<div class="loading-spinner"></div> Adding...';
+        submitButton.disabled = true;
+        const book = {
+            title: form.title.value.trim(),
+            authors: form.authors.value.trim().split(',').map(a => a.trim()).filter(a => a),
+            isbn: form.isbn.value.trim(),
+            publishedDate: form.publishedDate.value.trim(),
+            pageCount: form.pageCount.value ? parseInt(form.pageCount.value) : null,
+            publisher: form.publisher.value.trim(),
+            categories: form.categories.value.trim().split(',').map(c => c.trim()).filter(c => c),
+            description: form.description.value.trim(),
+            cover: form.isbn.value.trim() ? `https://covers.openlibrary.org/b/isbn/${form.isbn.value.trim()}-M.jpg` : '/static/book-placeholder.png'
+        };
+        try {
+            const response = await fetch('/add_book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ book: book })
+            });
+            const data = await response.json();
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+            if (data.success) {
+                showStatus('Book successfully added to your library!', 'success', 'manual-status');
+                form.reset();
+            } else {
+                showStatus(data.message || 'Failed to add book', 'error', 'manual-status');
+            }
+        } catch (error) {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+            showStatus(`Error: ${error.message}`, 'error', 'manual-status');
+        }
+    }
+
+    async function addBookToNotion(book, buttonElement = null, statusElementId = 'scan-status') {
+        if (processingBook) return;
+        processingBook = true;
+        if (buttonElement) {
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<div class="loading-spinner"></div> Adding...';
+        }
+        showStatus('Adding book to your library...', 'loading', statusElementId);
+        try {
+            const response = await fetch('/add_book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ book })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showStatus(`Success! Book added to your library`, 'success', statusElementId);
+                if (buttonElement) {
+                    buttonElement.innerHTML = '<i class="fas fa-check"></i> Added';
+                    buttonElement.classList.add('success');
+                }
+            } else {
+                if (data.existing) {
+                    showStatus('This book already exists in your library', 'error', statusElementId);
+                    if (buttonElement) {
+                        buttonElement.innerHTML = '<i class="fas fa-check"></i> Already in Library';
+                        buttonElement.disabled = true;
+                    }
+                } else {
+                    showStatus(`Error: ${data.message}`, 'error', statusElementId);
+                    if (buttonElement) {
+                        buttonElement.innerHTML = '<i class="fas fa-plus"></i> Add to Library';
+                        buttonElement.disabled = false;
+                    }
+                }
+            }
+        } catch (error) {
+            showStatus(`Error connecting to server: ${error.message}`, 'error', statusElementId);
+            if (buttonElement) {
+                buttonElement.innerHTML = '<i class="fas fa-plus"></i> Add to Library';
+                buttonElement.disabled = false;
+            }
+        } finally {
+            processingBook = false;
+            setTimeout(() => { lastDetectedCode = ''; }, 3000);
+        }
+    }
+
+    function showStatus(message, type, elementId) {
+        const statusContainer = document.getElementById(elementId);
+        if (!message) {
+            statusContainer.style.display = 'none';
+            return;
+        }
+        statusContainer.textContent = message;
+        statusContainer.className = 'status ' + type;
+        statusContainer.style.display = 'block';
+        if (type === 'success') {
+            setTimeout(() => {
+                statusContainer.style.display = 'none';
+            }, 5000);
+        }
+    }
+    </script>
+</body>
+</html>
