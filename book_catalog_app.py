@@ -221,7 +221,15 @@ def add_book():
     if book.get('pageCount'):
         properties["Pages"] = {"number": book.get('pageCount')}
     if book.get('categories'):
-        properties["Genre"] = {"multi_select": [{"name": category} for category in book.get('categories')[:8]]}
+        genres = []
+        if isinstance(book.get('categories'), list):
+            if len(book.get('categories')) == 1 and isinstance(book.get('categories')[0], str):
+                genres = [category.strip().title() for category in book.get('categories')[0].split(',')]
+            else:
+                genres = [category.strip().title() for category in book.get('categories')]
+        elif isinstance(book.get('categories'), str):
+            genres = [category.strip().title() for category in book.get('categories').split(',')]
+        properties["Genre"] = {"multi_select": [{"name": genre} for genre in genres]}
     if book.get('publisher'):
         properties["Publisher"] = {"rich_text": [{"text": {"content": book.get('publisher')}}]}
     if isbn:
