@@ -338,6 +338,9 @@ def search_books():
             book['thumbnail'] = f"https://covers.openlibrary.org/b/isbn/{book['isbn']}-M.jpg"
         results.append(book)
 
+    # Check if results are empty and return a custom message
+    if not results:
+        return jsonify({'success': False, 'message': 'No books found for the given query.', 'results': []})
     return jsonify({'success': True, 'message': 'Books found', 'results': results})
 
 def fetch_open_library_covers(isbns):
